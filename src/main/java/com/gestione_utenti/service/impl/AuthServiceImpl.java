@@ -35,31 +35,30 @@ public class AuthServiceImpl implements AuthService
 
     @Override
     @Transactional
-    public AuthResponseDTO login(LoginRequest loginRequest) 
+    public AuthResponseDTO login(LoginRequest request)
     {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getCodiceFiscale(),
-                        loginRequest.getPassword()
-                )
+            new UsernamePasswordAuthenticationToken(
+                request.getCodiceFiscale(),
+                request.getPassword()
+            )
         );
-
-        Utente utente = utenteRepository.findByCodiceFiscale(loginRequest.getCodiceFiscale())
-                .orElseThrow(() -> new ResourceNotFoundException(MESSAGGIO_UTENTE_NON_TROVATO + loginRequest.getCodiceFiscale()));
 
         String accessToken = jwtGenerator.generateToken(authentication);
 
-        String refreshToken = jwtGenerator.generateToken(authentication); 
+        Utente utente = (Utente) authentication.getPrincipal();
+
+        String refreshToken = generateRefreshToken(utente);
         
         utente.setRefreshToken(refreshToken);
         utenteRepository.save(utente);
-
+        
         return AuthResponseDTO.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .codiceFiscale(utente.getCodiceFiscale())
-                .ruolo(utente.getRuolo().name())
-                .build();
+            .accessToken(accessToken)
+            .refreshToken(refreshToken)
+            .codiceFiscale(utente.getCodiceFiscale())
+            .ruolo(utente.getRuolo().name())
+            .build();
     }
 
     @Override
@@ -111,7 +110,7 @@ public class AuthServiceImpl implements AuthService
         
         return AuthResponseDTO.builder()
                 .accessToken(nuovoAccessToken)
-                .refreshToken(refreshToken)
+                .refreshToken(refreshToken) 
                 .codiceFiscale(utente.getCodiceFiscale())
                 .ruolo(utente.getRuolo().name())
                 .build();
@@ -147,5 +146,14 @@ public class AuthServiceImpl implements AuthService
                 .orElseThrow(() -> new ResourceNotFoundException(MESSAGGIO_UTENTE_NON_TROVATO + codiceFiscale));
 
         return utenteMapper.toResponse(utente);
+    }
+    
+    private String generateRefreshToken(Utente utente) {
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+            utente.getCodiceFiscale(), 
+            null, 
+            utente.getAuthorities()
+        );
+        return jwtGenerator.generateRefreshToken(auth);
     }
 }

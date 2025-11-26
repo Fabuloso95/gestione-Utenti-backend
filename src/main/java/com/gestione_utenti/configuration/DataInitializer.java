@@ -29,12 +29,12 @@ public class DataInitializer implements CommandLineRunner
                 .codiceFiscale("CFADMIN0000X")
                 .dataNascita(LocalDate.of(1990, 1, 1))
                 .ruolo(Ruolo.ADMIN)
-                .password(passwordEncoder.encode("adminpassword6£"))
+                .password(passwordEncoder.encode("Adminpassword6£"))
                 .attivo(true)
                 .build();
             
             utenteRepository.save(admin);
-            log.info("Utente ADMIN di default creato con successo: CFADMIN0000X / adminpassword");
+            log.info("Utente ADMIN di default creato con successo: CFADMIN0000X / Adminpassword6£");
         } 
         else 
         {

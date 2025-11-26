@@ -11,6 +11,7 @@ public class UtenteResponse
 	private Long id;
 	private String nome;
 	private String cognome;
+	private String codiceFiscale;
 	private LocalDate dataNascita;
 	private Ruolo ruolo;
 }
